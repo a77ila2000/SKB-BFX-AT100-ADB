@@ -1,0 +1,6 @@
+# Publish only the documentation in this checkout.
+*
+!/.gitignore
+!/README.md
+!/docs/
+!/docs/*.md
