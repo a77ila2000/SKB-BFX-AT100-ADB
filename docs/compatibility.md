@@ -1,5 +1,7 @@
 # 호환성 수정과 실제 검증 범위
 
+초기 현장 수정본, 공개 r1 재빌드, 후속 개인화 R3는 서로 다른 이미지입니다. 최신 측정 결과와 배포본 구분은 [R3 검증 기록](runtime-validation.md)이 우선합니다.
+
 ## 화면: TV SystemUI와 휴대폰 Keyguard 충돌
 
 vanilla GSI는 완전한 제조사 Android TV 제품 이미지가 아닙니다. TV 자원 선택으로 TvStatusBar가 시작되는 환경에서 휴대폰 KeyguardService가 phone StatusBar를 가정해 null을 참조했습니다. 관측 기기에서는 해당 KeyguardService 구성요소를 사용자 단위로 비활성화한 뒤 framework를 재시작해 화면을 복구했습니다.
@@ -34,7 +36,15 @@ PHH `libbootanimation.so`에서 사용할 애니메이션 ZIP이 없어 mAnimati
 
 `src/patch_libraries.py`는 **확인한 원본 전체 SHA-256, 크기와 원래 바이트가 전부 일치할 때만** 별도 파일을 만듭니다. 수정 라이브러리 자체는 Git 소스에 넣지 않지만 배포 system 이미지에는 포함됩니다. 현장 이미지의 개인 serial 조건은 공개 r1에서 모델명과 정확한 라이브러리 해시 조건으로 대체했습니다. 실제 기기 serial은 포함하지 않습니다.
 
-## 검증 결과의 한계
+## 장시간 kernel wakelock 통계 읽기 고착
+
+후속 R2 현장 이미지에서 `KernelWakelockReader`의 파일 읽기가 멈춰 `BatteryStatsImpl` 잠금, Watchdog의 system_server 종료와 정상 재부팅 고착으로 이어졌습니다. R3에는 legacy 통계 파일의 읽기 뷰만 대체하는 보정을 적용했습니다. 실제 wake-lock/suspend 제어는 바꾸지 않지만 개별 legacy 통계는 생략됩니다. 커널 내부 락까지 특정해 수정한 작업은 아닙니다.
+
+현재 main 빌더에 `overlay/bfx-wakelock-stats-compat.sh`, `.rc`, `wakeup_sources-safe.txt`를 통합했습니다. 공개 r1 ZIP에는 이 보정이 없고 r1 자체의 장시간 재현 시험도 하지 않았습니다. R3에서 실제 mount와 60분·61회 수집, 정상 재부팅 2회를 확인했습니다. [수정 범위·시험·남은 한계](runtime-validation.md)를 참고하세요.
+
+## 초기 현장 수정본의 검증 이력
+
+아래 표는 후속 Google 통합/R3 이전의 기록입니다. R3에서 새로 한 전원 부팅·실제 TV 청취 시험으로 재사용하지 않습니다.
 
 | 항목 | 확인 범위 |
 |---|---|
@@ -46,9 +56,9 @@ PHH `libbootanimation.so`에서 사용할 애니메이션 ZIP이 없어 mAnimati
 | 시간 | 한국 시간 동기화 확인 |
 | ADB | 승인된 PC의 인증 연결 확인 |
 | Verified Boot / SELinux | 수정 이미지에서 green / Enforcing 확인 |
-| Google 서비스 | 프레임워크·시스템 권한 불일치, 정상 통합 안 됨 |
+| Google 서비스 | 당시 프레임워크·시스템 권한 불일치. 이후 개인화 R3의 통합·유지 확인은 별도 기록 |
 | Wi-Fi | 사용 가능한 Wi-Fi 장치 미확인; 확인한 CYW20706은 Bluetooth 전용 |
 | DRM·OTT | 인증·실제 재생·보안 수준 보장 안 함 |
-| 장시간 안정성 | 장시간 연속 사용·전체 코덱 검증 안 함 |
+| 장시간 안정성 | 이 초기 단계에서는 미검증. 후속 R3는 60분·61회 및 재부팅 2회 확인; 전체 코덱·장기 무오류 보장 아님 |
 
 최초 수정 후 특정 시험에서 crash 버퍼가 비어 있었다는 결과를 모든 앱·전체 세션 무오류로 확대하지 않습니다. 특히 이후 응용 프로그램 시험에서는 AudioFlinger 시간 초과가 별도로 한 번 관측됐습니다. 기존 SIGSEGV 경로 수정과 모든 오디오 문제 해결은 같은 주장이 아닙니다.

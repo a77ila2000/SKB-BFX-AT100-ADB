@@ -1,6 +1,7 @@
 # Only reviewed documentation and source code belong in this repository.
 *
 !/.gitignore
+!/.gitattributes
 !/README.md
 !/docs/
 !/docs/*.md
@@ -17,5 +18,6 @@
 !/overlay/*.rc
 !/overlay/*.sh
 !/overlay/fstab.bfx_gsi
+!/overlay/wakeup_sources-safe.txt
 !/tests/
 !/tests/*.py

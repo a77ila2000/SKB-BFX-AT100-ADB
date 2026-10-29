@@ -1,0 +1,8 @@
+on post-fs-data
+    exec u:r:phhsu_daemon:s0 root -- /system/bin/sh /system/bin/bfx-wakelock-stats-compat.sh
+
+on boot
+    exec u:r:phhsu_daemon:s0 root -- /system/bin/sh /system/bin/bfx-wakelock-stats-compat.sh
+
+on property:sys.boot_completed=1
+    exec u:r:phhsu_daemon:s0 root -- /system/bin/sh /system/bin/bfx-wakelock-stats-compat.sh

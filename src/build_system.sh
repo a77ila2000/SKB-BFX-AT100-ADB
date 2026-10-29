@@ -55,9 +55,9 @@ set_inode_field /system/etc/bfx-compat uid 0
 set_inode_field /system/etc/bfx-compat gid 0
 ea_set -f $out/label-system /system/etc/bfx-compat security.selinux
 EOF
-files=("$repo/overlay/fstab.bfx_gsi" "$out/libbootanimation.so" "$out/audio.primary.amlogic.so" "$out/build.prop" "$repo/overlay/bfx-audio-compat.sh" "$repo/overlay/bfx-audio-compat.rc" "$repo/overlay/bfx-diagnostics.rc")
-targets=(/fstab.bfx_gsi /system/lib/libbootanimation.so /system/etc/bfx-compat/audio.primary.amlogic.so /system/build.prop /system/bin/bfx-audio-compat.sh /system/etc/init/bfx-audio-compat.rc /system/etc/init/bfx-diagnostics.rc)
-labels=(rootfs system-lib vendor system system system system)
+files=("$repo/overlay/fstab.bfx_gsi" "$out/libbootanimation.so" "$out/audio.primary.amlogic.so" "$out/build.prop" "$repo/overlay/bfx-audio-compat.sh" "$repo/overlay/bfx-audio-compat.rc" "$repo/overlay/bfx-diagnostics.rc" "$repo/overlay/bfx-wakelock-stats-compat.sh" "$repo/overlay/bfx-wakelock-stats-compat.rc" "$repo/overlay/wakeup_sources-safe.txt")
+targets=(/fstab.bfx_gsi /system/lib/libbootanimation.so /system/etc/bfx-compat/audio.primary.amlogic.so /system/build.prop /system/bin/bfx-audio-compat.sh /system/etc/init/bfx-audio-compat.rc /system/etc/init/bfx-diagnostics.rc /system/bin/bfx-wakelock-stats-compat.sh /system/etc/init/bfx-wakelock-stats-compat.rc /system/etc/bfx-compat/wakeup_sources-safe.txt)
+labels=(rootfs system-lib vendor system system system system system system system)
 if [[ -n "${ADB_PUBLIC_KEY:-}" ]]; then
     [[ -f "$ADB_PUBLIC_KEY" ]] || { echo 'Public ADB key file is missing.' >&2; exit 2; }
     if grep -q 'PRIVATE KEY' "$ADB_PUBLIC_KEY"; then echo 'Do not supply a private ADB key.' >&2; exit 2; fi
@@ -71,7 +71,7 @@ if len(base64.b64decode(lines[0].split()[0], validate=True)) != 524:
     raise SystemExit('Unexpected Android ADB public-key length')
 PY
     printf 'u:object_r:adb_keys_file:s0\0' > "$out/label-adb"
-    printf 'on post-fs-data\n    setprop service.adb.tcp.port 5555\n    start adbd\n' > "$out/bfx-local-adb.rc"
+    printf 'on property:sys.boot_completed=1 && property:ro.adb.secure=1\n    setprop service.adb.tcp.port 5555\n    start adbd\n' > "$out/bfx-local-adb.rc"
     files+=("$ADB_PUBLIC_KEY" "$out/bfx-local-adb.rc")
     targets+=(/adb_keys /system/etc/init/bfx-local-adb.rc)
     labels+=(adb system)

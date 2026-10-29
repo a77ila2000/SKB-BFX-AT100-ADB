@@ -51,6 +51,8 @@ first-stage init → vendor dm-verity → split SELinux policy → APEX → Andr
 
 ## 7. 최종 확인
 
+다음 전원 부팅·실제 TV 확인은 **초기 현장 수정본의 이력**입니다. 후속 R3의 60분 검사·정상 재부팅과 미검증 항목은 [최신 검증 기록](runtime-validation.md)으로 구분합니다. 공개 r1 ZIP 자체의 실기 검증 결과도 아닙니다.
+
 USB를 제거하고 전원을 완전히 분리했다가 다시 연결해 자동 부팅을 확인했습니다. 실제 TV 화면, 인증된 ADB, DHCP 유선 연결, 시간 동기화와 PCM HDMI 소리를 확인했습니다. warm reboot나 USB RAM 부팅만으로 독립 부팅 성공을 주장하지 않습니다.
 
 ## 재현할 때 필요한 개인 자료

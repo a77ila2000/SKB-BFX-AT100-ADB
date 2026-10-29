@@ -1,6 +1,6 @@
 # 버전별 확인 결과와 근거
 
-확인일: 2026-10-28.
+원본 ADB 확인일: 2026-10-28. 후속 Android 12.1 R3의 60분·61회 검사, 재부팅 2회 및 Google·DRM 결과는 [최신 검증 기록](runtime-validation.md)을 참고합니다. 아래는 SKB 원본 Android 9/12의 ADB 메뉴 분석 이력입니다.
 
 ## Android 9: 실제 기기 확인
 

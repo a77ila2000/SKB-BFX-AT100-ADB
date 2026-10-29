@@ -16,6 +16,7 @@
 | `src/prepare_boot_flags.py` | 자기 env/misc 백업에서 확인된 업데이트 반복 플래그 변경만 오프라인 준비 |
 | `src/uboot-console.cmd`, `src/make_usb_script.py` | flash 쓰기가 없는 RAM 전용 USB 콘솔 진입 스크립트와 uImage 생성 |
 | `overlay/` | 장치별 fstab과 부팅 초기 오디오 bind mount 구성 |
+| `overlay/bfx-wakelock-stats-compat.sh`, `.rc`, `wakeup_sources-safe.txt` | 장시간 고착 경로의 legacy 통계 읽기 보정. 실제 wake-lock 제어는 유지 |
 | `tests/test_sources.py` | 패치 가드·파일 범위와 64비트 읽기 회귀 검사 |
 
 현장 작업 코드에서 개인 경로·주소·기기 식별값을 제거한 **공개용 소스**입니다. 공개 빌더는 ADB 키와 장치 serial을 기본 포함하지 않고 ADB 인증을 켭니다. 개인화 현장 이미지와 배포본의 바이트/해시는 다릅니다. 소스 공개는 전체 Android 소스를 처음부터 빌드한 자체 ROM이라는 의미가 아닙니다. 완성 배포 ZIP과 사용 방법은 [배포 안내](distribution.md)에 있습니다.
@@ -42,7 +43,11 @@ export AUDIO_LIBRARY=/local/private/audio.primary.amlogic.so
 bash src/build_system.sh /local/input/system-squeak-arm32_binder64-ab-vanilla.img /local/output/bfx12
 ```
 
-기본 빌드에는 기기 시리얼과 PC 키가 없습니다. 자기 PC를 미리 등록하려는 경우에만 `export ADB_PUBLIC_KEY=/local/private/adbkey.pub`를 추가합니다. 이때 인증을 유지하면서 해당 공개키와 TCP ADB 시작 rc를 넣습니다. private key는 입력하지 않으며, 이 옵션으로 만든 개인화 이미지는 다시 공개하지 않습니다. 자신의 키를 빼려면 깨끗한 원본 GSI에서 이 변수를 비우고 새 출력 폴더로 다시 빌드합니다.
+기본 빌드에는 기기 시리얼과 PC 키가 없습니다. 자기 PC를 미리 등록하려는 경우에만 `export ADB_PUBLIC_KEY=/local/private/adbkey.pub`를 추가합니다. 현재 main의 선택적 TCP ADB rc는 **부팅 완료와 실제 `ro.adb.secure=1`이 모두 성립할 때만** 시작합니다. 구형 Android 9 ramdisk가 인증 값을 0으로 덮어쓰면 자동으로 네트워크 ADB를 열지 않습니다. 이미지의 build.prop만 보고 인증을 가정하지 말고 실제 값을 확인합니다. private key는 입력하지 않으며, 이 옵션으로 만든 개인화 이미지는 다시 공개하지 않습니다. 자신의 키를 빼려면 깨끗한 원본 GSI에서 이 변수를 비우고 새 출력 폴더로 다시 빌드합니다.
+
+현재 main은 통계 읽기 보정 소스를 포함합니다. 기존 r1 ZIP에는 이 변경이 없습니다. 공개 빌더는 여전히 vanilla 구성이며 Google APK·로그인 데이터·Netflix APK·DRM 키를 제공하거나 현장 R3의 전체 Google/rootless 구성을 재현하지 않습니다. [R3와 공개 배포본의 차이](runtime-validation.md)를 확인합니다.
+
+Windows Git에서 받아 WSL로 빌드하는 경우를 위해 shell/init/U-Boot 소스의 줄바꿈을 `.gitattributes`로 LF에 고정했습니다.
 
 빌더가 성공해도 flash 설치 승인이나 기기 호환성 검증을 대신하지 않습니다. `docs/install.md`의 원본 백업·파티션 확인·검증 절차가 필요합니다.
 
@@ -54,6 +59,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/serial-terminal.ps1 
 ```
 
 2026-10-29 공개 전 검사에서 Python 회귀 검사 6개, C 컴파일 검사, shell 문법 검사, UART 자체 검사가 통과했습니다. 공개 빌더를 실제 로컬 원본 자료로 실행해 두 라이브러리 패치의 예상 해시, 주입 파일의 재읽기 일치, ext4 검사, system AVB 및 기존 6개 파티션을 포함한 root vbmeta 검증까지 통과했습니다. ZIP의 압축 무결성 및 내부 이미지 해시도 확인했습니다. 새 모델 기반 오디오 가드는 기존 설치본에서 실행해 ready를 확인했지만, 배포 이미지를 기기에 새로 기록한 것은 아니며 현장 개인화 이미지의 부팅·소리 검증과는 구분합니다.
+
+후속 통계 보정을 추가한 main 빌더도 깨끗한 원본에서 다시 실행해 주입 파일 재읽기·ext4·전체 AVB 검증을 통과했습니다. 이 새 빌드는 오프라인 소스 검증용이며 새 공개 릴리스를 업로드하거나 실물에 다시 기록한 결과가 아닙니다. 현장 R3의 60분 시험과 혼동하지 않습니다.
 
 UART 사용 시 현재 PC의 실제 COM 포트를 지정합니다. 기본은 RX 전용이고 VCC는 연결하지 않습니다. TX는 로직 전압과 프롬프트를 확인한 뒤 명시적으로 사용합니다. 자체 검사는 포트를 열지 않습니다.
 
