@@ -1,0 +1,3 @@
+# BFX-AT100 Android12 trial: keep GSI's integrated product/system_ext visible.
+/dev/block/vendor /vendor ext4 ro,barrier=1,inode_readahead_blks=8 wait,avb=vbmeta,first_stage_mount
+/dev/block/odm /odm ext4 ro,barrier=1,inode_readahead_blks=8 wait,first_stage_mount

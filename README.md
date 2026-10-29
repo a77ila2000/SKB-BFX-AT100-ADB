@@ -1,85 +1,76 @@
-# SKB BFX-AT100 ADB
+# BFX-AT100: Android 9에서 Android 12.1 기본 시스템으로 판올림
 
-SK브로드밴드 BFX-AT100 셋톱박스의 Android 설정 진입과 ADB 활성화 방법입니다.
+**당근에서 중고로 구매한 SK브로드밴드 BFX-AT100이 Android 9에 멈춰 있어, 기존 파티션을 유지하면서 Android 12.1 기반 AOSP/PHH GSI로 판올림한 개인 작업 기록과 보조 소스입니다.**
 
-확인일: **2026-10-28**.
+출발점은 Android 12 기기가 아닙니다. **Android 9 → Android 12 계열의 실제 OS 판올림**을 진행했습니다. 여기서 ‘기본 버전’은 B tv용 제조사 시스템 대신 사용한 **PHH v416 vanilla Android 12.1/API 32**를 뜻합니다. SKB 공식 Android 12 펌웨어를 성공적으로 설치한 결과나, 공식 Android TV 인증 제품 이미지를 배포하는 프로젝트가 아닙니다.
 
-## 빠른 요약
+확인일: **2026-10-29**. 게임·에뮬레이터 설정은 이 저장소에 포함하지 않습니다.
 
-- 설정 진입: **재생/일시정지(▶⏸) → 1 → 2 → 3 → 8 → 확인**.
-- **Android 9**: 실제 기기에서 추가 비밀번호 없이 ADB 활성화와 PC 인증을 완료했습니다.
-- **Android 12**: 분석한 펌웨어에는 ADB 활성화 시 6자리 비밀번호 입력 단계가 있습니다. **`000923`**을 입력합니다.
-- 6자리 비밀번호의 앞 두 자리는 임의의 숫자이며, 뒤 네 자리는 **`0923`**입니다. 즉 **`XX0923`** 형식입니다.
+## 왜 이 작업을 했나
 
-| 구분 | Android 9 | Android 12 |
-| --- | --- | --- |
-| 확인 대상 | 실제 BFX-AT100, `PI.15.520.8-20200731` | BFX-AT100 업데이트 `15.561.128-20260611` |
-| 확인 방법 | 사용자 메뉴 조작 + 인증된 ADB 연결 | 업데이트 안의 설정 앱 코드 분석 |
-| ADB 활성화 시 추가 비밀번호 | 해당 기기에서는 요구하지 않음 | 6자리 입력, 예: `000923` |
-| PC 연결 승인 | TV의 디버깅 허용 창에서 승인 | 별도의 PC 인증 단계가 필요함 |
+구매한 셋톱은 B tv 계약이 해지된 상태였고, 기존 화면에는 고객센터에 연락해 다시 이용하라는 해지 안내가 표시됐습니다. Android 9에 머물러 있는 이 기기에서 정상적인 B tv 서비스·업데이트 이용을 완료할 수 없어, 일반 Android 시스템으로 활용하는 방향을 택했습니다.
 
-Android 12에 관한 내용은 해당 업데이트 파일의 분석 결과입니다. 이번 실제 기기 연결은 Android 9에서 확인했습니다.
+다만 **계약 해지 때문에 펌웨어 파일 자체가 전혀 다운로드되지 않았던 것은 아닙니다.** 실제 recovery에서는 동일 모델용 Android 12 업데이트의 다운로드와 전체 파일 서명 검증이 성공했습니다. 그 뒤 설치 약 24%에서 실패·재부팅이 반복됐고, UART로 확인한 직접 원인은 **구형 정적 파티션에서 `super` 동적 파티션으로의 전환 실패**였습니다. 해지 상태와 설치 실패의 기술적 원인을 구분해 기록합니다.
 
-## 1. Android 설정 메뉴 열기
+| 항목 | 출발 상태 | 실패한 공식 OTA의 대상 | 실제 적용 결과 |
+|---|---|---|---|
+| 시스템 | SKB Android 9 | SKB Android 12 | PHH vanilla Android 12.1 |
+| API | 28 | 31 | 32 |
+| 빌드/기반 | `PI.15.520.8-20200731` | `15.561.128-20260611` | PHH v416, `arm32_binder64-ab` |
+| 파티션 | 개별 `system/vendor/product/odm` | `super` 안의 논리 파티션 요구 | 기존 정적 구조 유지 |
+| 결과 | 해지 안내, 업데이트 반복 실패 | 동적 파티션 갱신 오류 25 | 실제 부팅·화면·유선 통신·PCM 소리 확인 |
 
-B tv 리모컨 또는 연결된 네트워크 리모컨에서 아래 순서로 연속 입력합니다.
+## 공식 업데이트가 실패한 지점
 
 ```text
-재생/일시정지(▶⏸) → 1 → 2 → 3 → 8 → 확인
+whole-file signature verified against RSA key 0
+now upgrade from android 28 to S
+upgrade from old android to new, need upgrade by two step.
+else case, ota_zip_check() != 1
+format: mke2fs failed (256) on /dev/block/by-name/metadata
+DTB NOT changed...
+open failed: /dev/block/by-name/super: No such file or directory
+Failed to load dynamic partition metadata.
+assert failed: update_dynamic_partitions(...)
+error: 25
 ```
 
-사용자가 실제 BFX-AT100에서 이 조합으로 메뉴를 열었습니다. 앱 코드에도 같은 조합이 있습니다. 코드에서는 B tv 설정 또는 셋톱 정보 등 현재 화면에 따른 처리 조건이 있으므로 모든 화면에서 항상 동작한다고 보지는 않습니다.
+기존 recovery/파티션에서 새 구조로 옮기는 선행 단계가 이 시도에서 실행되지 않았습니다. ‘Android 9가 너무 오래돼서’라는 추측만으로 결론내린 것이 아니며, **특정 중간 버전을 반드시 설치해야 한다거나 Android 10·11을 차례로 거쳐야 한다는 절차는 확인하지 못했습니다.** 자세한 구분은 [공식 OTA 실패 분석](docs/ota-failure.md)을 참고하세요.
 
-## 2. ADB 활성화
+## 어떤 방식으로 Android 12를 올렸나
 
-1. Android 설정에서 **개발자 옵션 → USB 디버깅**을 켭니다.
-2. 개발자 옵션이 보이지 않으면 **기기 환경설정 → 정보 → 빌드** 항목을 7회 선택한 뒤 돌아갑니다. 빌드 항목의 표시는 버전에 따라 다를 수 있습니다.
-3. Android 9의 확인 기기에서는 추가 비밀번호 없이 활성화할 수 있었습니다.
-4. 분석한 Android 12 버전에서 비밀번호 창이 나오면 아래 번호를 입력합니다.
+1. 원래 Android 9 기기의 eMMC와 파티션을 읽어 백업하고 별도 해시 검증을 했습니다.
+2. 실제 32비트 userspace와 Binder 프로토콜을 확인해 PHH v416 **ARM32/Binder64 vanilla** 이미지를 선택했습니다.
+3. 구형 kernel/vendor와 정적 파티션을 유지하고, 새 GSI의 `system`·`product`·`system_ext`가 올바르게 보이도록 fstab과 부팅 인자를 조정했습니다.
+4. system 이미지와 그에 맞는 vbmeta를 만들고 AVB 서명·해시 트리·변경하지 않은 파티션 기술자를 검증한 뒤 적용했습니다.
+5. 첫 부팅의 SystemUI·구형 앱 충돌, 고정 IP 저장 후 부팅 반복, 부팅 애니메이션과 오디오 HAL의 오류 경로를 조사하고 수정했습니다.
+6. USB를 뺀 상태에서 전원을 완전히 분리·재연결하고 실제 TV 화면과 소리를 확인했습니다.
 
-```text
-000923
-```
+관측한 기기의 공개 AOSP 시험 키 수용 조건을 이용한 장치별 작업입니다. **AVB green은 이 수정 이미지의 검증 통과를 뜻하며 제조사 정식 펌웨어·잠금 해제 성공·일반 기기에 대한 범용 설치 보증을 뜻하지 않습니다.**
 
-### Android 12 비밀번호 규칙
+## 문서와 소스
 
-6자리 입력 중 앞 두 자리를 제외한 나머지가 `0923`인지 검사합니다.
+- [설치 구조·작업 순서·복구 범위](docs/install.md)
+- [공식 OTA의 24% 실패와 파티션 차이](docs/ota-failure.md)
+- [호환성 수정 및 실제 검증 범위](docs/compatibility.md)
+- [소스 사용법·공개 범위·개인정보 제외 기준](docs/source-and-privacy.md)
+- [기존 SKB Android 9/12의 ADB 진입 안내](docs/adb-stock.md)
+- [기존 ADB 분석 근거](docs/verification.md)
 
-```text
-XX0923
-```
+공개 소스는 **오프라인 이미지 구성·검증 도구 및 진단 보조 코드**입니다. 기기의 flash를 자동으로 덮어쓰는 설치기는 제공하지 않습니다. 제조사 펌웨어·수정 완성 이미지·원본 APK·eMMC 덤프·ADB 키·개인 정보는 포함하지 않습니다.
 
-`X`는 각각 0~9 중 아무 숫자입니다. 따라서 `000923`, `120923`, `990923`은 이 검사 규칙에 맞는 입력입니다. 이 번호는 ADB 활성화용 입력이며, PC의 RSA 인증 창을 대신하지 않습니다.
+## 확인된 결과와 한계
 
-## 3. PC에서 연결하고 승인하기
+- Android 12 계열/API 32 부팅 완료와 HDMI 화면, 인증된 ADB, DHCP 유선 통신을 확인했습니다.
+- USB 없는 완전 전원 부팅, 실제 TV의 PCM HDMI 소리를 확인했습니다.
+- 오래된 GPU/vendor의 모든 기능이나 장시간 안정성을 보증하지 않습니다.
+- Google Play/어시스턴트는 현재 vanilla 구성에 정상 통합되지 않았고, DRM·OTT 인증/재생도 검증하지 않았습니다.
+- 기존 Wi-Fi 추정은 정정했습니다. 확인한 무선 칩은 Bluetooth 전용이며 사용 가능한 Wi-Fi 인터페이스는 확인하지 못했습니다.
+- 기반 보안 패치는 **2022-07-05**입니다. 설치 작업일과 시스템 보안 패치 날짜는 다릅니다.
 
-PC와 셋톱을 같은 네트워크에 연결하고 Android Platform Tools의 `adb`를 사용합니다. `SETTOP_IP`를 셋톱의 실제 IP 주소로 바꿉니다.
+## 기반 프로젝트
 
-아래 `5555`는 실제 Android 9 기기에서 확인한 포트입니다.
-
-```shell
-adb connect SETTOP_IP:5555
-adb devices -l
-```
-
-TV에 **USB 디버깅을 허용하시겠습니까?** 창이 나오면 연결할 PC를 확인하고 **허용**을 선택합니다. 정상적으로 승인되면 `adb devices -l`의 상태가 `unauthorized`에서 **`device`**로 바뀝니다.
-
-연결한 기기를 확인할 수 있습니다.
-
-```shell
-adb -s SETTOP_IP:5555 shell getprop ro.product.model
-adb -s SETTOP_IP:5555 shell getprop ro.build.version.release
-adb -s SETTOP_IP:5555 shell getprop sys.boot_completed
-```
-
-이번 기기에서는 각각 `BFX-AT100`, `9`, `1`을 확인했습니다. ADB 셸 권한은 일반 `shell`이며 root 권한을 얻은 것은 아닙니다.
-
-## 연결이 안 될 때
-
-- **`unauthorized`**: TV의 PC 인증 허용 창을 확인합니다. ADB 활성화 비밀번호와는 별개입니다.
-- **연결 거부 또는 시간 초과**: 셋톱 IP, 같은 네트워크 연결, 디버깅 활성화 및 실제 포트를 확인합니다. Android 12 파일에는 `5555`와 `5815` 선언이 모두 있어 실행 중인 포트를 별도로 확인해야 합니다.
-- **Android 12의 디버깅 스위치가 비활성화됨**: 분석한 설정 앱은 `persist.sys.skb.adb.disable=true`일 때 디버깅을 막는 분기가 있습니다. 올바른 비밀번호 입력만으로 이 정책이 해제된다고 보지는 않습니다.
-
-## 검증 자료
-
-[버전별 확인 범위와 분석 근거](docs/verification.md)에 실측 값과 비밀번호 검사 근거를 정리했습니다. 이 저장소는 안내 문서이며 펌웨어나 APK를 배포하지 않습니다.
+- [PHH AOSP 12.1 v416](https://github.com/phhusson/treble_experimentations/releases/tag/v416)
+- [AOSP GSI](https://source.android.com/docs/core/tests/vts/gsi)
+- [AOSP non-A/B 동적 파티션 OTA](https://source.android.com/docs/core/ota/dynamic_partitions/nonab)
+- [AOSP Android Verified Boot](https://android.googlesource.com/platform/external/avb/+/refs/tags/android-12.0.0_r34/README.md)

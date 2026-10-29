@@ -1,0 +1,14 @@
+# Optional development console + authenticated ADB; include only with a local public ADB key.
+service bfxconsole /system/bin/sh
+    class core
+    console console
+    disabled
+    user shell
+    group shell log readproc
+    seclabel u:r:shell:s0
+
+on post-fs-data
+    stop console
+    start bfxconsole
+    setprop service.adb.tcp.port 5555
+    start adbd

@@ -1,6 +1,18 @@
-# Publish only the documentation in this checkout.
+# Only reviewed documentation and source code belong in this repository.
 *
 !/.gitignore
 !/README.md
 !/docs/
 !/docs/*.md
+!/src/
+!/src/*.py
+!/src/*.c
+!/src/*.java
+!/src/*.ps1
+!/src/*.sh
+!/overlay/
+!/overlay/*.rc
+!/overlay/*.sh
+!/overlay/fstab.bfx_gsi
+!/tests/
+!/tests/*.py
