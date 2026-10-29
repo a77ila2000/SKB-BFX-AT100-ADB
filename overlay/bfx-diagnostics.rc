@@ -1,4 +1,4 @@
-# Optional development console + authenticated ADB; include only with a local public ADB key.
+# Physical UART console only. Network ADB is not enabled by this file.
 service bfxconsole /system/bin/sh
     class core
     console console
@@ -10,5 +10,3 @@ service bfxconsole /system/bin/sh
 on post-fs-data
     stop console
     start bfxconsole
-    setprop service.adb.tcp.port 5555
-    start adbd

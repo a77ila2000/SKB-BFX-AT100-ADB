@@ -7,24 +7,21 @@ if [[ $# != 2 ]]; then echo "Usage: $0 ORIGINAL_GSI.img NEW_OUTPUT_DIRECTORY" >&
 : "${STOCK_VBMETA:?Set the locally backed-up original vbmeta image path}"
 : "${STOCK_PARTS_DIR:?Set the directory of your verified original boot/recovery/vendor/product/dtbo/dtb images}"
 : "${AUDIO_LIBRARY:?Set the original vendor audio.primary.amlogic.so path}"
-: "${DEVICE_SERIAL_FILE:?Set a local one-line file with your own device serial}"
 repo=$(cd "$(dirname "$0")/.." && pwd)
 source=$(realpath "$1")
 out=$(realpath -m "$2")
-for path in "$repo" "$source" "$out" "$AVBTOOL" "$SIGNING_KEY" "$STOCK_VBMETA" "$STOCK_PARTS_DIR" "$AUDIO_LIBRARY" "$DEVICE_SERIAL_FILE" "${ADB_PUBLIC_KEY:-}"; do
+for path in "$repo" "$source" "$out" "$AVBTOOL" "$SIGNING_KEY" "$STOCK_VBMETA" "$STOCK_PARTS_DIR" "$AUDIO_LIBRARY" "${ADB_PUBLIC_KEY:-}"; do
     if [[ "$path" =~ [[:space:]] || "$path" == *'"'* || "$path" == *\\* ]]; then
         echo 'Use paths without whitespace, quotes or backslashes for debugfs.' >&2; exit 2
     fi
 done
-for path in "$source" "$AVBTOOL" "$SIGNING_KEY" "$STOCK_VBMETA" "$AUDIO_LIBRARY" "$DEVICE_SERIAL_FILE"; do
+for path in "$source" "$AVBTOOL" "$SIGNING_KEY" "$STOCK_VBMETA" "$AUDIO_LIBRARY"; do
     [[ -f "$path" ]] || { echo 'A required local regular file is missing.' >&2; exit 2; }
 done
 [[ ! -e "$out" ]] || { echo 'Output directory must not exist.' >&2; exit 2; }
 for part in boot recovery vendor product dtbo dtb; do
     [[ -f "$STOCK_PARTS_DIR/$part.img" ]] || { echo "Missing original $part image." >&2; exit 2; }
 done
-serial=$(cat "$DEVICE_SERIAL_FILE")
-[[ "$serial" =~ ^[a-zA-Z0-9_-]{4,64}$ ]] || { echo 'Invalid local serial file.' >&2; exit 2; }
 echo '62b68f4c8f7e01497e02628f05e2a5ec0a0328ef98c8262be143c3ee90f2bc1b  '"$source" | sha256sum -c -
 echo 'a9ec360fc5395db9b72d36c03af59ff984f4eefcc349dc32a556de7f8ed892ab  '"$AVBTOOL" | sha256sum -c -
 mkdir "$out"
@@ -33,7 +30,20 @@ python3 "$AVBTOOL" erase_footer --image "$out/system.img"
 debugfs -R "dump /system/lib/libbootanimation.so $out/libbootanimation.original.so" "$out/system.img" > "$out/debugfs.log" 2>&1
 python3 "$repo/src/patch_libraries.py" bootanimation "$out/libbootanimation.original.so" "$out/libbootanimation.so"
 python3 "$repo/src/patch_libraries.py" audio "$AUDIO_LIBRARY" "$out/audio.primary.amlogic.so"
-printf '%s\n' "$serial" > "$out/device-serial"
+debugfs -R "dump /system/build.prop $out/build.prop.original" "$out/system.img" >> "$out/debugfs.log" 2>&1
+python3 - "$out/build.prop.original" "$out/build.prop" <<'PY'
+from pathlib import Path
+import sys
+source, output = map(Path, sys.argv[1:])
+data = source.read_bytes()
+if b'ro.adb.secure=0' not in data:
+    raise SystemExit('Expected pinned GSI ADB property was not found')
+data = data.replace(b'ro.adb.secure=0', b'ro.adb.secure=1')
+if any(line.startswith(b'ro.adb.secure=') and line != b'ro.adb.secure=1' for line in data.splitlines()):
+    raise SystemExit('Unexpected ADB authentication property')
+with output.open('xb') as stream:
+    stream.write(data)
+PY
 printf 'u:object_r:rootfs:s0\0' > "$out/label-rootfs"
 printf 'u:object_r:system_file:s0\0' > "$out/label-system"
 printf 'u:object_r:system_lib_file:s0\0' > "$out/label-system-lib"
@@ -45,15 +55,25 @@ set_inode_field /system/etc/bfx-compat uid 0
 set_inode_field /system/etc/bfx-compat gid 0
 ea_set -f $out/label-system /system/etc/bfx-compat security.selinux
 EOF
-files=("$repo/overlay/fstab.bfx_gsi" "$out/libbootanimation.so" "$out/audio.primary.amlogic.so" "$out/device-serial" "$repo/overlay/bfx-audio-compat.sh" "$repo/overlay/bfx-audio-compat.rc")
-targets=(/fstab.bfx_gsi /system/lib/libbootanimation.so /system/etc/bfx-compat/audio.primary.amlogic.so /system/etc/bfx-compat/device-serial /system/bin/bfx-audio-compat.sh /system/etc/init/bfx-audio-compat.rc)
-labels=(rootfs system-lib vendor system system system)
+files=("$repo/overlay/fstab.bfx_gsi" "$out/libbootanimation.so" "$out/audio.primary.amlogic.so" "$out/build.prop" "$repo/overlay/bfx-audio-compat.sh" "$repo/overlay/bfx-audio-compat.rc" "$repo/overlay/bfx-diagnostics.rc")
+targets=(/fstab.bfx_gsi /system/lib/libbootanimation.so /system/etc/bfx-compat/audio.primary.amlogic.so /system/build.prop /system/bin/bfx-audio-compat.sh /system/etc/init/bfx-audio-compat.rc /system/etc/init/bfx-diagnostics.rc)
+labels=(rootfs system-lib vendor system system system system)
 if [[ -n "${ADB_PUBLIC_KEY:-}" ]]; then
     [[ -f "$ADB_PUBLIC_KEY" ]] || { echo 'Public ADB key file is missing.' >&2; exit 2; }
     if grep -q 'PRIVATE KEY' "$ADB_PUBLIC_KEY"; then echo 'Do not supply a private ADB key.' >&2; exit 2; fi
+    python3 - "$ADB_PUBLIC_KEY" <<'PY'
+import base64, sys
+from pathlib import Path
+lines = Path(sys.argv[1]).read_text().splitlines()
+if len(lines) != 1 or not lines[0].split():
+    raise SystemExit('Expected one Android ADB public key')
+if len(base64.b64decode(lines[0].split()[0], validate=True)) != 524:
+    raise SystemExit('Unexpected Android ADB public-key length')
+PY
     printf 'u:object_r:adb_keys_file:s0\0' > "$out/label-adb"
-    files+=("$ADB_PUBLIC_KEY" "$repo/overlay/bfx-diagnostics.rc")
-    targets+=(/adb_keys /system/etc/init/bfx-diagnostics.rc)
+    printf 'on post-fs-data\n    setprop service.adb.tcp.port 5555\n    start adbd\n' > "$out/bfx-local-adb.rc"
+    files+=("$ADB_PUBLIC_KEY" "$out/bfx-local-adb.rc")
+    targets+=(/adb_keys /system/etc/init/bfx-local-adb.rc)
     labels+=(adb system)
 fi
 for i in "${!targets[@]}"; do
@@ -92,4 +112,4 @@ for part in boot recovery vendor product dtbo dtb; do
 done
 python3 "$AVBTOOL" verify_image --image "$out/vbmeta.img" > "$out/vbmeta-avb.txt"
 sha256sum "$out/system.img" "$out/flash-vbmeta.img" > "$out/image-sha256.txt"
-echo 'Offline images built and reread-verified. No device was written. Outputs contain local device personalization; do not publish them.'
+echo 'Offline images built and reread-verified. No device was written. If ADB_PUBLIC_KEY was set, keep the personalized output private.'

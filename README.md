@@ -6,6 +6,8 @@
 
 확인일: **2026-10-29**. 게임·에뮬레이터 설정은 이 저장소에 포함하지 않습니다.
 
+**설치용 이미지:** [Releases에서 r1 ZIP 다운로드](https://github.com/a77ila2000/SKB-BFX-AT100-ADB/releases/tag/bfx12.1-vanilla-20261029-r1) · [다운로드·자기 기기 검증·UART 설치·첫 설정 안내](docs/distribution.md). 개인정보와 ADB 키를 넣지 않은 실험 배포본이며, 원본 덤프가 아닙니다. SKB의 OTA 업로드 메뉴에 넣는 ZIP도 아닙니다. 배포용 재빌드 자체의 실기기 부팅은 미시험이며, 현장 개인화 이미지의 부팅 검증과 구분합니다.
+
 ## 왜 이 작업을 했나
 
 구매한 셋톱은 B tv 계약이 해지된 상태였고, 기존 화면에는 고객센터에 연락해 다시 이용하라는 해지 안내가 표시됐습니다. Android 9에 머물러 있는 이 기기에서 정상적인 B tv 서비스·업데이트 이용을 완료할 수 없어, 일반 Android 시스템으로 활용하는 방향을 택했습니다.
@@ -51,13 +53,14 @@ error: 25
 ## 문서와 소스
 
 - [설치 구조·작업 순서·복구 범위](docs/install.md)
+- [배포 이미지로 설치하기: 검증부터 첫 부팅까지](docs/distribution.md)
 - [공식 OTA의 24% 실패와 파티션 차이](docs/ota-failure.md)
 - [호환성 수정 및 실제 검증 범위](docs/compatibility.md)
 - [소스 사용법·공개 범위·개인정보 제외 기준](docs/source-and-privacy.md)
 - [기존 SKB Android 9/12의 ADB 진입 안내](docs/adb-stock.md)
 - [기존 ADB 분석 근거](docs/verification.md)
 
-공개 소스는 **오프라인 이미지 구성·검증 도구 및 진단 보조 코드**입니다. 기기의 flash를 자동으로 덮어쓰는 설치기는 제공하지 않습니다. 제조사 펌웨어·수정 완성 이미지·원본 APK·eMMC 덤프·ADB 키·개인 정보는 포함하지 않습니다.
+Git 저장소에는 **오프라인 이미지 구성·검증 도구 및 진단 보조 코드**를, Releases에는 **개인정보를 제거한 설치용 system/vbmeta ZIP**을 제공합니다. 기기의 flash를 자동으로 덮어쓰는 설치기는 제공하지 않습니다. 제조사 OTA 전체·원본 APK·eMMC 덤프·ADB 키·개인 정보는 배포하지 않습니다.
 
 ## 확인된 결과와 한계
 

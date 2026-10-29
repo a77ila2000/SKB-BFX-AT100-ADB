@@ -7,8 +7,7 @@ fail() {
     echo "BFX_AUDIO_PATCH_GUARD_FAILED $1" > /dev/kmsg
     exit 0
 }
-expected=$(cat /system/etc/bfx-compat/device-serial 2>/dev/null)
-[ -n "$expected" ] && [ "$(getprop ro.serialno)" = "$expected" ] || fail serial
+[ "$(getprop ro.product.vendor.model)" = BFX-AT100 ] || fail model
 [ "$(sha256sum "$src" | cut -c 1-64)" = 918c4e5600a1632d2127eb026b26f0339999c611f46bfb7b4e031c6fc79a9db1 ] || fail source
 current=$(sha256sum "$target" | cut -c 1-64)
 if [ "$current" = 27eb4b859d7366cefdd352e785d7f036e0ab3d0773c62d448a569005dac1105b ]; then

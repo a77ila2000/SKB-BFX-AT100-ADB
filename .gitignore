@@ -10,6 +10,7 @@
 !/src/*.java
 !/src/*.ps1
 !/src/*.sh
+!/src/*.cmd
 !/overlay/
 !/overlay/*.rc
 !/overlay/*.sh

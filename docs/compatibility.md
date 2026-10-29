@@ -32,7 +32,7 @@ PHH `libbootanimation.so`에서 사용할 애니메이션 ZIP이 없어 mAnimati
 
 수정한 라이브러리는 system 안에 두고 vendor HAL 시작 전 bind mount했습니다. 원래 vendor 파티션을 다시 쓰지 않았습니다. 초기 임시 HAL 재시작에서는 HDMI 재등록이 필요했지만, 부팅 초기에 수정본을 적용한 이후 재부팅/완전 전원 시험에서는 자동 HDMI 출력과 실제 TV 소리를 확인했습니다.
 
-`src/patch_libraries.py`는 **확인한 원본 전체 SHA-256, 크기와 원래 바이트가 전부 일치할 때만** 별도 파일을 만듭니다. 수정 라이브러리 자체는 배포하지 않습니다. `overlay/bfx-audio-compat.sh`의 장치 serial은 빌드 시 자기 기기 값으로 로컬 파일에 넣어야 하며 저장소에는 실제 값을 넣지 않습니다.
+`src/patch_libraries.py`는 **확인한 원본 전체 SHA-256, 크기와 원래 바이트가 전부 일치할 때만** 별도 파일을 만듭니다. 수정 라이브러리 자체는 Git 소스에 넣지 않지만 배포 system 이미지에는 포함됩니다. 현장 이미지의 개인 serial 조건은 공개 r1에서 모델명과 정확한 라이브러리 해시 조건으로 대체했습니다. 실제 기기 serial은 포함하지 않습니다.
 
 ## 검증 결과의 한계
 
