@@ -4,6 +4,8 @@
 !/README.md
 !/docs/
 !/docs/*.md
+!/docs/images/
+!/docs/images/*.jpg
 !/src/
 !/src/*.py
 !/src/*.c
