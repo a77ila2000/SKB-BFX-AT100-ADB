@@ -1,0 +1,1 @@
+package androidx.fragment.app; import android.content.*;public class Fragment {public void onResume(){} public void onPause(){} public Context requireContext(){return null;} public void startActivity(Intent i){} }

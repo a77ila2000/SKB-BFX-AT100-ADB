@@ -18,6 +18,11 @@
 | `overlay/` | 장치별 fstab과 부팅 초기 오디오 bind mount 구성 |
 | `overlay/bfx-wakelock-stats-compat.sh`, `.rc`, `wakeup_sources-safe.txt` | 장시간 고착 경로의 legacy 통계 읽기 보정. 실제 wake-lock 제어는 유지 |
 | `tests/test_sources.py` | 패치 가드·파일 범위와 64비트 읽기 회귀 검사 |
+| `tests/test_connectivity_build.py` | ARM 모듈 버전 표·중복 레코드·다른 config/소스 거부 회귀 검사 |
+| `src/tv-connectivity/` | 기본 TV Wi-Fi 패널·암호 입력 연동·USB 준비·BMM-BA03 키 보정 소스와 APK 빌더 |
+| `src/usb-wifi/` | 대상 ABI 검증·RTL8821CU 빌드·로컬 HAL runtime overlay 구성. 완성 바이너리는 제외 |
+
+2026-10-31 연결 수정의 입력 자료·지원 하드웨어·빌드·적용/rollback 절차는 [별도 안내](connectivity.md)에 있습니다. 기존 r1 ZIP이나 기본 이미지 빌더에 자동 포함되는 기능이 아닙니다. 유선랜은 MAC/PHY·Device Tree·커널 및 vendor 구성이 하드웨어마다 달라 별도 검증·작업이 필요합니다.
 
 현장 작업 코드에서 개인 경로·주소·기기 식별값을 제거한 **공개용 소스**입니다. 공개 빌더는 ADB 키와 장치 serial을 기본 포함하지 않고 ADB 인증을 켭니다. 개인화 현장 이미지와 배포본의 바이트/해시는 다릅니다. 소스 공개는 전체 Android 소스를 처음부터 빌드한 자체 ROM이라는 의미가 아닙니다. 완성 배포 ZIP과 사용 방법은 [배포 안내](distribution.md)에 있습니다.
 
@@ -62,11 +67,15 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/serial-terminal.ps1 
 
 후속 통계 보정을 추가한 main 빌더도 깨끗한 원본에서 다시 실행해 주입 파일 재읽기·ext4·전체 AVB 검증을 통과했습니다. 이 새 빌드는 오프라인 소스 검증용이며 새 공개 릴리스를 업로드하거나 실물에 다시 기록한 결과가 아닙니다. 현장 R3의 60분 시험과 혼동하지 않습니다.
 
+2026-10-31에는 USB Wi-Fi 의존성을 설치한 Linux/WSL에서 **회귀 검사 9개**가 모두 통과했습니다. TV APK 두 입력 경로의 재빌드·Java 검사·원본 코드/리소스 보존·서명, 깨끗한 외부 드라이버 소스의 컴파일·205개 CRC·실제 타입 배치 비교, userspace overlay 구성도 통과했습니다. 새 공개 출력 자체의 실기기 기록 시험은 하지 않았습니다. 새 ELF 검사를 실행하려면 `python -m pip install -r src/usb-wifi/requirements.txt`가 필요합니다.
+
 UART 사용 시 현재 PC의 실제 COM 포트를 지정합니다. 기본은 RX 전용이고 VCC는 연결하지 않습니다. TX는 로직 전압과 프롬프트를 확인한 뒤 명시적으로 사용합니다. 자체 검사는 포트를 열지 않습니다.
 
 ## 제외한 것
 
 기기 serial/CID/MAC/UUID, 실제 IP·라우터·서버 접속 정보, 사용자 이름·PC 경로, ADB 공개/비공개 키, 비밀번호·토큰·인증서/개인 키 파일, 전체 UART 로그·화면 캡처, eMMC/파티션 덤프, 제조사 OTA·APK 원본, 게임·에뮬레이터 자료를 제외했습니다. 라이브러리 원본 파일을 따로 배포하지는 않지만, 필요한 수정 오디오 라이브러리는 배포 system 안에 들어 있습니다.
+
+새 연결 소스에도 실제 SSID·암호·Bluetooth 주소·Wi-Fi 저장 파일·페어링 자료·Google 로그인 정보는 없습니다. 개발용 GATT probe/임의 입력 진단 receiver와 키 기록 코드는 공개 APK 구성에서 제외했습니다. `reference-*.json`은 특정 기기의 고유 키가 아니라 일반적인 USB ID·커널 빌드 정보·심벌 CRC·입력 바이너리 해시입니다. 빌드 결과와 원본/서명 입력은 저장소 밖 로컬 폴더에 둡니다.
 
 기존 ADB 문서의 고정 메뉴 번호·펌웨어 버전·공개된 ADB 메뉴 PIN은 개인 계정 비밀번호와 구분합니다. 예전 안내는 SKB 원본 펌웨어의 분석 기록이며, 새 vanilla GSI의 설정 절차로 해석하지 않습니다.
 

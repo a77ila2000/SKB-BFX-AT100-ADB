@@ -1,0 +1,19 @@
+{
+  "model": "BFX-AT100",
+  "stock_system": "Android 9 PI.15.520.8-20200731",
+  "kernel": "4.9.113-gd284ece-dirty / #71",
+  "original_config_sha256": "f56a04af58ebbcf8b9018a8b6640a514beecb705a43e65d0d3d15d918e6d3b90",
+  "compiler": "Linaro GCC 6.3.1 20170109",
+  "kernel_source": "https://github.com/khadas/linux/tree/d71236547be9b86d527de0f62c2092ec032fd0fa",
+  "driver_source": "https://github.com/brektrou/rtl8821CU/tree/8c2226a74ae718439d56248bd2e44ccf717086d5",
+  "driver_archive_sha256": "caa7e73385a75b33b451d2d733f81a1c7048f6714647c2f3ae4f4fb32a1f4e84",
+  "compiler_source": "https://github.com/khadas/buildroot_toolchain_gcc_linux-x86_arm_gcc-linaro-6.3.1-2017.02-x86_64_arm-linux-gnueabihf/tree/32a934c7f728290fd4f08bf415d0cd451aaf4724",
+  "compiler_archive_sha256": "f964d7336621919545186339901c10930fb3ffdf18aa429922e20a1a3a562fc5",
+  "userspace_reference": "https://dl.khadas.com/products/vim3/firmware/android/vim3-android-11-32bit-v241024.img.xz",
+  "userspace_archive_sha256": "1f4634073d9cd7498e10767059155e81f041992e1489a874cd5cbef79b604b77",
+  "kallsyms_lookup_name_crc": "e007de41",
+  "symbol_count": 205,
+  "wifi_usb_id": "0bda:c820",
+  "installer_usb_id": "0bda:1a2b",
+  "important": "Generic build metadata from the tested kernel, not device identity. CRC equality alone is insufficient; validate actual compiled inline layouts. Never use on a different target to force a module load."
+}

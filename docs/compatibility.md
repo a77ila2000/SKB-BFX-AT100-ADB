@@ -2,6 +2,8 @@
 
 초기 현장 수정본, 공개 r1 재빌드, 후속 개인화 R3는 서로 다른 이미지입니다. 최신 측정 결과와 배포본 구분은 [R3 검증 기록](runtime-validation.md)이 우선합니다.
 
+2026-10-31의 **USB Wi-Fi·TV 설정 UI·BMM-BA03 리모컨 후속 수정**은 [연결 수정 안내](connectivity.md)를 확인하세요. 아래 초기 Wi-Fi 미확인 기록 이후 외장 RTL8821CU 연결과 LAN 없는 완전 전원 부팅을 검증했습니다. 내장 Wi-Fi가 새로 발견된 것은 아닙니다. 유선랜은 확인한 내장 LAN 외의 하드웨어에 별도 작업이 필요합니다.
+
 ## 화면: TV SystemUI와 휴대폰 Keyguard 충돌
 
 vanilla GSI는 완전한 제조사 Android TV 제품 이미지가 아닙니다. TV 자원 선택으로 TvStatusBar가 시작되는 환경에서 휴대폰 KeyguardService가 phone StatusBar를 가정해 null을 참조했습니다. 관측 기기에서는 해당 KeyguardService 구성요소를 사용자 단위로 비활성화한 뒤 framework를 재시작해 화면을 복구했습니다.

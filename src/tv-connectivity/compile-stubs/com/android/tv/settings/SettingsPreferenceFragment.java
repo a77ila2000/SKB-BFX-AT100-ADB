@@ -1,0 +1,1 @@
+package com.android.tv.settings; import android.os.Bundle;import androidx.preference.*;public class SettingsPreferenceFragment extends androidx.fragment.app.Fragment {public void onCreatePreferences(Bundle b,String s){} public PreferenceManager getPreferenceManager(){return null;} public void setPreferenceScreen(PreferenceScreen s){} }

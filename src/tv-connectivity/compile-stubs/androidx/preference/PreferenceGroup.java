@@ -1,0 +1,1 @@
+package androidx.preference;public class PreferenceGroup extends Preference {public PreferenceGroup(android.content.Context c){super(c);} public boolean addPreference(Preference p){return true;} public void removeAll(){} public int getPreferenceCount(){return 0;} }

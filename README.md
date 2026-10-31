@@ -4,13 +4,17 @@
 
 출발점은 Android 12 기기가 아닙니다. **Android 9 → Android 12 계열의 실제 OS 판올림**을 진행했습니다. 여기서 ‘기본 버전’은 B tv용 제조사 시스템 대신 사용한 **PHH v416 vanilla Android 12.1/API 32**를 뜻합니다. SKB 공식 Android 12 펌웨어를 성공적으로 설치한 결과나, 공식 Android TV 인증 제품 이미지를 배포하는 프로젝트가 아닙니다.
 
-확인일: **2026-10-29**. 게임·에뮬레이터 설정은 이 저장소에 포함하지 않습니다.
+확인일: **2026-10-31**. 게임·에뮬레이터 설정은 이 저장소에 포함하지 않습니다.
+
+**새 연결 수정:** USB RTL8821CU Wi-Fi의 검색·TV 기본 암호 입력·저장 네트워크 자동 복귀와 BMM-BA03의 홈·방향키·뒤로·숫자키 보정을 공개했습니다. LAN 없는 완전 전원 부팅, USB 재연결과 실제 리모컨 동작을 현장 수정본에서 확인했습니다. [지원 하드웨어·소스 빌드·적용·복구 안내](docs/connectivity.md)를 참고하세요. 이번 공개 재빌드는 오프라인 검증을 통과했으며, **기존 r1 ZIP에는 이 변경이 없습니다.**
+
+**유선랜은 하드웨어별 별도 작업이 필요합니다.** 확인한 BFX-AT100 내장 LAN의 결과이며, 다른 보드·리비전·USB 유선랜은 MAC/PHY·Device Tree·커널 드라이버·vendor 서비스와 DHCP 구성을 각각 확인해야 합니다. 무선랜도 확인한 USB ID/커널 조합에 한정합니다.
 
 **후속 R3 결과:** 장시간 kernel wakelock 통계 읽기 고착을 보정한 개인화 현장 이미지에서 **60분·61회 검사와 정상 재부팅 2회**가 통과했습니다. Google 계정·ADB 인증 유지, Widevine L1 세션 생성·종료와 내부 PCM/HDMI 경로도 확인했습니다. [시험 결과·한계·공개 r1과의 차이](docs/runtime-validation.md)를 먼저 확인하세요. R3의 실제 TV 구독 재생·음성·완전 전원 부팅은 미검증입니다.
 
 **설치용 이미지:** [Releases에서 r1 ZIP 다운로드](https://github.com/a77ila2000/SKB-BFX-AT100-ADB/releases/tag/bfx12.1-vanilla-20261029-r1) · [다운로드·자기 기기 검증·UART 설치·첫 설정 안내](docs/distribution.md). 개인정보와 ADB 키를 넣지 않은 실험 배포본이며, 원본 덤프가 아닙니다. SKB의 OTA 업로드 메뉴에 넣는 ZIP도 아닙니다. 배포용 재빌드 자체의 실기기 부팅은 미시험이며, 현장 개인화 이미지의 부팅 검증과 구분합니다.
 
-**공개 r1 ZIP에는 후속 통계 보정·Google 통합이 없습니다.** 현재 main 빌더에는 통계 보정 소스를 추가했지만 기존 릴리스 ZIP은 바뀌지 않습니다. 개인화 R3의 시험 결과를 r1 ZIP의 결과로 해석하지 않습니다.
+**공개 r1 ZIP에는 후속 통계 보정·Google 통합·USB Wi-Fi·리모컨 보정이 없습니다.** main의 기본 이미지 빌더는 통계 보정을 포함하지만 새 연결 소스는 별도 빌드·통합이 필요합니다. 기존 릴리스 ZIP은 바뀌지 않으며, 개인화 현장 이미지의 시험 결과를 r1 ZIP의 결과로 해석하지 않습니다.
 
 ![기존 UART 핀헤더에 납땜 없이 USB-TTL을 연결한 실제 작업 모습](docs/images/uart-no-solder-connection.jpg)
 
@@ -65,6 +69,7 @@ error: 25
 - [공식 OTA의 24% 실패와 파티션 차이](docs/ota-failure.md)
 - [호환성 수정 및 실제 검증 범위](docs/compatibility.md)
 - [후속 R3: 60분 반복·재부팅·Google·DRM 검증](docs/runtime-validation.md)
+- [USB Wi-Fi·TV 리모컨: 지원 범위, 소스 빌드와 설치 후 시험](docs/connectivity.md)
 - [소스 사용법·공개 범위·개인정보 제외 기준](docs/source-and-privacy.md)
 - [기존 SKB Android 9/12의 ADB 진입 안내](docs/adb-stock.md)
 - [기존 ADB 분석 근거](docs/verification.md)
@@ -77,7 +82,7 @@ Git 저장소에는 **오프라인 이미지 구성·검증 도구 및 진단 �
 - 초기 현장 수정본에서 USB 없는 완전 전원 부팅과 실제 TV의 PCM HDMI 소리를 확인했습니다. 후속 R3에서 새로 한 전원 분리 시험은 아닙니다.
 - 오래된 GPU/vendor의 모든 기능이나 장시간 안정성을 보증하지 않습니다.
 - 공개 r1 vanilla에는 Google 앱이 없습니다. 후속 개인화 R3에서는 Google 시스템 통합·계정 유지·스토어와 DRM L1 세션을 확인했지만, 실제 음성·OTT 구독 재생·제조사 인증은 검증하지 않았습니다.
-- 기존 Wi-Fi 추정은 정정했습니다. 확인한 무선 칩은 Bluetooth 전용이며 사용 가능한 Wi-Fi 인터페이스는 확인하지 못했습니다.
+- 확인한 내장 무선 칩은 Bluetooth 전용입니다. 후속 수정에서 **외장 USB RTL8821CU**로 Wi-Fi 검색·접속·LAN 없는 자동 재연결을 확인했습니다. 모든 USB 무선랜 지원을 뜻하지 않습니다.
 - 기반 보안 패치는 **2022-07-05**입니다. 설치 작업일과 시스템 보안 패치 날짜는 다릅니다.
 
 ## 추후 Android 12 셋톱 작업 계획
