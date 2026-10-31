@@ -68,3 +68,10 @@
 !/.github/workflows/
 !/.github/workflows/*.yml
 !/requirements-dev.txt
+
+# Native Android time recovery source only; no APK, signer, logs or device state.
+!/src/time-recovery/
+!/src/time-recovery/*.java
+!/src/time-recovery/*.xml
+!/src/time-recovery/*.py
+!/src/time-recovery/LICENSE
