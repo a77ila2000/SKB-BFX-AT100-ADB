@@ -1,0 +1,9 @@
+service bfx-stock-remote /system/bin/sh /system/etc/bfx-stock-remote.sh
+    user root
+    group root system input log
+    seclabel u:r:phhsu_daemon:s0
+    disabled
+    oneshot
+
+on property:sys.boot_completed=1
+    start bfx-stock-remote

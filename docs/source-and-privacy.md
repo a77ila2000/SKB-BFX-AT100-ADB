@@ -21,6 +21,10 @@
 | `tests/test_connectivity_build.py` | ARM 모듈 버전 표·중복 레코드·다른 config/소스 거부 회귀 검사 |
 | `src/tv-connectivity/` | 기본 TV Wi-Fi 패널·암호 입력 연동·USB 준비·BMM-BA03 키 보정 소스와 APK 빌더 |
 | `src/usb-wifi/` | 대상 ABI 검증·RTL8821CU 빌드·로컬 HAL runtime overlay 구성. 완성 바이너리는 제외 |
+| `src/stock-remote/` | 원본 모듈 해시·모델·커널 가드, 60초 뒤 연결/재연결 감시, 순정 키배치. vendor 모듈은 제외 |
+| `src/tv-display-compat/` | 수동 runtime 전체 화면 우회용 동적 resource overlay와 로컬 서명 빌더. 부팅 초기 정적 적용은 제외 |
+| `tests/test_stock_remote_watch.py` | 실제 shell loop에 가상 sysfs를 붙인 늦은 연결·재연결·실패 후 복원 회귀 시험 |
+| `.github/workflows/tests.yml` | Python 3.11 offline pytest와 shell 문법 검사; 기기·계정·서명 키에 접근하지 않음 |
 
 2026-10-31 연결 수정의 입력 자료·지원 하드웨어·빌드·적용/rollback 절차는 [별도 안내](connectivity.md)에 있습니다. 기존 r1 ZIP이나 기본 이미지 빌더에 자동 포함되는 기능이 아닙니다. 유선랜은 MAC/PHY·Device Tree·커널 및 vendor 구성이 하드웨어마다 달라 별도 검증·작업이 필요합니다.
 
@@ -59,7 +63,8 @@ Windows Git에서 받아 WSL로 빌드하는 경우를 위해 shell/init/U-Boot 
 ## 소스 검사
 
 ```sh
-python3 -m unittest discover -s tests -v
+python3 -m pip install -r requirements-dev.txt
+python3 -m pytest -q
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/serial-terminal.ps1 -SelfTest
 ```
 
@@ -82,3 +87,7 @@ UART 사용 시 현재 PC의 실제 COM 포트를 지정합니다. 기본은 RX 
 설치 참고용 기판 전면·UART 연결 사진 두 장은 별도로 선별해 `docs/images/`에 공개했습니다. 기기 식별 라벨·개인 작업 화면이 보이는 사진은 제외하고, 공개 사본은 문서용 크기 조정과 촬영 메타데이터 제거 후 확인했습니다. 사진 속 기존 핀헤더를 이용한 납땜 없는 연결 사례는 [설치 안내](distribution.md)에 설명합니다.
 
 `.gitignore`는 공개할 텍스트 소스 폴더만 허용합니다. 설치용 ZIP은 Git blob이 아닌 Releases 첨부 파일로 올립니다. 이미지 전체에서 작성자의 알려진 식별값·실제 PC ADB 키와 금지 경로 부재를 검사하고, ZIP 안의 이미지 해시 및 업로드된 첨부 파일의 SHA-256을 확인합니다. GitHub 소스 tree도 로컬 공개 파일의 Git blob 해시와 대조합니다.
+
+2026-10-31 후속 순정 리모컨 수정의 shell 회귀 시험은 실제 이전 60초 제한 코드에서 실패하는 것을 확인한 뒤 수정 코드에서 통과했습니다. Linux/WSL에서 전체 12개 offline 검사가 통과했습니다. 공개 TV APK 재빌드도 Java report/Wi-Fi 검사와 기존 1,356개 코드/리소스 항목 보존·서명을 통과했습니다. 재빌드 APK는 현장 private APK와 바이트가 다르며 공개 APK 자체 실기기 설치를 검증한 것은 아닙니다.
+
+새 공개 HDMI receiver는 `DUMP` 권한 보유 호출자가 명시한 HDMI 음량 전달 on/off만 처리합니다. 개발용 GATT 진단·원시 report 수집·키 기록·영상 상태 root helper는 공개하지 않습니다. Netflix 앱·Google 앱·DRM/TEE 자료·부팅용 private delta·개인화 이미지도 포함하지 않습니다. 서비스 측 기기 인증이나 구독 재생을 보장하는 패치가 아닙니다.

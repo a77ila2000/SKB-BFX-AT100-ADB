@@ -8,3 +8,6 @@
 *.xml text eol=lf
 Makefile text eol=lf
 /overlay/wakeup_sources-safe.txt text eol=lf
+*.kl text eol=lf
+*.idc text eol=lf
+*.yml text eol=lf

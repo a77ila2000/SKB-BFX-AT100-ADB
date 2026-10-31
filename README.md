@@ -8,6 +8,8 @@
 
 **새 연결 수정:** USB RTL8821CU Wi-Fi의 검색·TV 기본 암호 입력·저장 네트워크 자동 복귀와 BMM-BA03의 홈·방향키·뒤로·숫자키 보정을 공개했습니다. LAN 없는 완전 전원 부팅, USB 재연결과 실제 리모컨 동작을 현장 수정본에서 확인했습니다. [지원 하드웨어·소스 빌드·적용·복구 안내](docs/connectivity.md)를 참고하세요. 이번 공개 재빌드는 오프라인 검증을 통과했으며, **기존 r1 ZIP에는 이 변경이 없습니다.**
 
+**후속 리모컨·OTT 수정:** BMM-BA03이 부팅 60초 뒤 연결되면 순정 드라이버 전환이 빠지던 결함을 수정했습니다. 늦은 연결·재연결, 확인·음량키와 HDMI 음량 표시를 실물에서 확인했습니다. Netflix `-14`의 별도 원인과 영상·전체 화면 수동 우회, 실제 FHD 측정 및 재부팅 재발 한계는 [리모컨·HDMI·Netflix 검증 기록](docs/tv-playback.md)에 구분했습니다. **Netflix 부팅 초기 자동 화면 보정은 검증에 실패해 안정 수정으로 배포하지 않습니다.** 기존 r1 ZIP은 바뀌지 않습니다.
+
 **유선랜은 하드웨어별 별도 작업이 필요합니다.** 확인한 BFX-AT100 내장 LAN의 결과이며, 다른 보드·리비전·USB 유선랜은 MAC/PHY·Device Tree·커널 드라이버·vendor 서비스와 DHCP 구성을 각각 확인해야 합니다. 무선랜도 확인한 USB ID/커널 조합에 한정합니다.
 
 **후속 R3 결과:** 장시간 kernel wakelock 통계 읽기 고착을 보정한 개인화 현장 이미지에서 **60분·61회 검사와 정상 재부팅 2회**가 통과했습니다. Google 계정·ADB 인증 유지, Widevine L1 세션 생성·종료와 내부 PCM/HDMI 경로도 확인했습니다. [시험 결과·한계·공개 r1과의 차이](docs/runtime-validation.md)를 먼저 확인하세요. R3의 실제 TV 구독 재생·음성·완전 전원 부팅은 미검증입니다.
@@ -70,6 +72,7 @@ error: 25
 - [호환성 수정 및 실제 검증 범위](docs/compatibility.md)
 - [후속 R3: 60분 반복·재부팅·Google·DRM 검증](docs/runtime-validation.md)
 - [USB Wi-Fi·TV 리모컨: 지원 범위, 소스 빌드와 설치 후 시험](docs/connectivity.md)
+- [순정 리모컨·HDMI 음량·Netflix 영상과 전체 화면: 확인한 결과와 제약](docs/tv-playback.md)
 - [소스 사용법·공개 범위·개인정보 제외 기준](docs/source-and-privacy.md)
 - [기존 SKB Android 9/12의 ADB 진입 안내](docs/adb-stock.md)
 - [기존 ADB 분석 근거](docs/verification.md)

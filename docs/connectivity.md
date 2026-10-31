@@ -2,6 +2,10 @@
 
 Android 9에서 Android 12.1로 판올림한 BFX-AT100에서 적용·확인한 연결 수정입니다. **이번 공개는 소스와 오프라인 빌드 도구입니다. 기존 r1 릴리스 ZIP에는 들어 있지 않습니다.** 개인화된 실행 중 시스템이나 userdata를 복제한 새 ROM은 배포하지 않습니다.
 
+## 같은 날 추가한 순정 입력 경로
+
+후속 실물 시험에서 GATT fallback만으로는 순정 음량·확인 동작을 충분히 유지하지 못했습니다. 최신 소스는 원본 ARM32 HID 드라이버가 확인되면 GATT 주입을 중지합니다. 부팅 후 60초가 지나 깨어난 BMM-BA03과 재연결도 계속 감시해 순정 경로로 전환합니다. [원본 모듈 가드·통합·확인 marker·rollback과 HDMI 음량 안내](tv-playback.md#1-순정-bmm-ba03-드라이버-경로)를 함께 적용해야 하며, 아래의 이전 GATT 시험을 순정 모듈 재연결 시험과 혼동하지 않습니다.
+
 ## 적용 대상과 유선랜의 차이
 
 | 항목 | 확인한 대상 |
@@ -92,7 +96,7 @@ python -m venv /local/venv-tv
   --out /local/output/tv-connectivity
 ```
 
-키는 로컬에만 둡니다. 기본 versionCode는 1011이고 rollback은 1012입니다. 기존 설치본보다 큰 버전이 필요하면 `--version-code`를 지정합니다. `build-verification.json`을 확인하고 자신의 GSI platform 인증서와 비교합니다. 기존 서명·권한이 맞는 TV 설정 앱이 설치된 시스템에서만 인증된 ADB로 업데이트할 수 있습니다.
+키는 로컬에만 둡니다. 기본 versionCode는 1021이고 rollback은 1022입니다. 기존 설치본보다 큰 버전이 필요하면 `--version-code`를 지정합니다. `build-verification.json`을 확인하고 자신의 GSI platform 인증서와 비교합니다. 기존 서명·권한이 맞는 TV 설정 앱이 설치된 시스템에서만 인증된 ADB로 업데이트할 수 있습니다.
 
 ```sh
 adb -s YOUR_AUTHORIZED_DEVICE install -r /local/output/tv-connectivity/TvSettings-connectivity.apk

@@ -49,3 +49,22 @@
 !/src/tv-connectivity/LICENSE
 !/src/usb-wifi/LICENSE
 !/src/usb-wifi/NOTICE.md
+
+# Reviewed TV compatibility source and CI; no generated artifacts.
+!/src/stock-remote/
+!/src/stock-remote/*.py
+!/src/stock-remote/*.sh
+!/src/stock-remote/*.rc
+!/src/stock-remote/*.kl
+!/src/stock-remote/*.idc
+!/src/stock-remote/LICENSE
+!/src/tv-display-compat/
+!/src/tv-display-compat/**/
+!/src/tv-display-compat/**/*.xml
+!/src/tv-display-compat/*.xml
+!/src/tv-display-compat/*.py
+!/src/tv-display-compat/LICENSE
+!/.github/
+!/.github/workflows/
+!/.github/workflows/*.yml
+!/requirements-dev.txt

@@ -78,6 +78,7 @@ public final class RemoteKeyService extends Service {
             byte[] b=c.getValue()==null?null:c.getValue().clone();
             main.post(()->{
                 if(g!=gatt || target==null || c.getInstanceId()!=target.getInstanceId())return;
+                if(yieldToNative())return;
                 int key=RemoteReport.decode(b);
                 if(key==RemoteReport.RELEASE)release();
                 else if(key>=0)press(key);
@@ -93,9 +94,28 @@ public final class RemoteKeyService extends Service {
         } catch(Exception e){fail("input API unavailable");}
     }
     @Override public int onStartCommand(Intent i,int flags,int id) {
+        if(yieldToNative())return START_NOT_STICKY;
         if(adapter!=null && !adapter.isEnabled()) {release();if(gatt!=null)gatt.close();gatt=null;state="Bluetooth off";}
         else connect();
         return START_STICKY;
+    }
+    private boolean yieldToNative() {
+        try {
+            Object state=Class.forName("android.os.SystemProperties")
+                .getMethod("get",String.class).invoke(null,"sys.bfx.stock_remote.state");
+            if(!"native-bound".equals(state)) {
+                if(!"id-registered".equals(state) && !"registered-awaiting-device".equals(state))return false;
+                boolean nativeInput=false;
+                for(int id:InputDevice.getDeviceIds()) {
+                    InputDevice d=InputDevice.getDevice(id);
+                    if(d!=null && !d.isVirtual() && d.getVendorId()==0x005d && d.getProductId()==0x0004 &&
+                        (d.getSources()&InputDevice.SOURCE_GAMEPAD)==InputDevice.SOURCE_GAMEPAD)nativeInput=true;
+                }
+                if(!nativeInput)return false;
+            }
+        }catch(Exception e){return false;}
+        release();if(gatt!=null)gatt.close();gatt=null;
+        state="stock HID driver active";stopSelf();return true;
     }
     private void connect() {
         if(gatt!=null || adapter==null || !adapter.isEnabled() || inject==null)return;

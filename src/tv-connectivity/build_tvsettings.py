@@ -15,7 +15,7 @@ p.add_argument('--java-home',type=Path,required=True)
 p.add_argument('--platform-key',type=Path,required=True)
 p.add_argument('--platform-cert',type=Path,required=True)
 p.add_argument('--out',type=Path,required=True)
-p.add_argument('--version-code',type=int,default=1011)
+p.add_argument('--version-code',type=int,default=1021)
 args=p.parse_args()
 w=Path(__file__).resolve().parent
 sdk=args.sdk.resolve();bt=sdk/'build-tools/35.0.0';jdk=args.java_home.resolve();jar=sdk/'platforms/android-35/android.jar'
@@ -59,9 +59,9 @@ def normalize(root):
             if e.get(k) in ('@01030007','@android:01030007'):e.set(k,'@android:style/Theme.NoTitleBar.Fullscreen')
             if e.get(k) in ('@01030055','@android:01030055'):e.set(k,'@android:style/Theme.NoDisplay')
     return root
-root=normalize(apk.get_android_manifest_xml());root.set(ns+'versionCode',str(args.version_code));root.set(ns+'versionName','1.0.6-bfx-connectivity-public')
+root=normalize(apk.get_android_manifest_xml());root.set(ns+'versionCode',str(args.version_code));root.set(ns+'versionName','1.0.11-bfx-tv-compat-public')
 app=root.find('application')
-for permission in ['android.permission.BLUETOOTH_CONNECT','android.permission.BLUETOOTH_PRIVILEGED']:
+for permission in ['android.permission.BLUETOOTH_CONNECT','android.permission.BLUETOOTH_PRIVILEGED','android.permission.HDMI_CEC','android.permission.MODIFY_AUDIO_ROUTING']:
     if not any(e.get(ns+'name')==permission for e in root.findall('uses-permission')):ET.SubElement(root,'uses-permission',{ns+'name':permission})
 for a in app.findall('activity'):
     for f in a.findall('intent-filter'):
@@ -71,6 +71,7 @@ for a in app.findall('activity'):
 network_activity=next(a for a in app.findall('activity') if a.get(ns+'name')=='com.android.tv.settings.connectivity.NetworkActivity')
 activity=ET.SubElement(app,'activity',{ns+'name':'com.android.tv.settings.bfx.UsbWifiActivity',ns+'exported':'true',ns+'label':'Wi-Fi',ns+'theme':network_activity.get(ns+'theme')})
 f=ET.SubElement(activity,'intent-filter',{ns+'priority':'150'});ET.SubElement(f,'action',{ns+'name':'android.settings.WIFI_SETTINGS'});ET.SubElement(f,'category',{ns+'name':'android.intent.category.DEFAULT'})
+ET.SubElement(app,'receiver',{ns+'name':'com.android.tv.settings.bfx.HdmiVolumeReceiver',ns+'exported':'true',ns+'permission':'android.permission.DUMP'})
 ET.SubElement(app,'service',{ns+'name':'com.android.tv.settings.bfx.RemoteKeyService',ns+'exported':'false'})
 ET.SubElement(app,'service',{ns+'name':'com.android.tv.settings.bfx.UsbWifiStartupService',ns+'exported':'false'})
 startup=ET.SubElement(app,'receiver',{ns+'name':'com.android.tv.settings.bfx.RemoteStartupReceiver',ns+'exported':'true'})
@@ -127,5 +128,5 @@ proof={'supplied_base_sha256':supplied_sha,'base_sha256':hashlib.sha256(old.read
        'original_zip_entries_byte_identical':count,'original_dex_and_resources_table_preserved':True,
        'modified_preference_xml':list(patched),'same_platform_signer':supplied_sha!=stock_sha,
        'local_signer_must_match_running_gsi':True,'diagnostic_receivers_included':False,
-       'public_rebuild_hardware_tested':False}
+       'public_rebuild_hardware_tested':False, 'hdmi_volume_receiver_permission':'android.permission.DUMP', 'native_driver_yield_included':True}
 (build/'build-verification.json').write_text(json.dumps(proof,indent=2)+'\n');print(json.dumps(proof,indent=2))
